@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 export default function Signup() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [error, setError] = useState(null)
-  const navigate = useNavigate()
+  const [success, setSuccess] = useState(false) 
 
   const handleSignup = async (e) => {
     e.preventDefault()
@@ -27,9 +27,18 @@ export default function Signup() {
     if (error) {
       setError(error.message)
     } else {
-      navigate('/login')
+      setSuccess(true)
     }
   }
+
+  if (success) {
+  return (
+    <div>
+      <h2>Check your email</h2>
+      <p>We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.</p>
+    </div>
+  )
+}
 
   return (
     <div>

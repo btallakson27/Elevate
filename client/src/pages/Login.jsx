@@ -9,7 +9,7 @@ export default function Login() {
   const navigate = useNavigate()
 
   const handleLogin = async (e) => {
-    e.preventDefault()
+    e.preventDefault() 
     setError(null)
 
     const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -28,8 +28,8 @@ export default function Login() {
         <input
           type="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
           required
         />
         <input
