@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 export default function Upload() {
   const { user } = useAuth()
+  console.log(user)
   const navigate = useNavigate()
   const [image, setImage] = useState(null)
   const [caption, setCaption] = useState('')
@@ -32,7 +33,7 @@ export default function Upload() {
       if (uploadError) throw uploadError
 
       // 2. Get the public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = supabase.storage 
         .from('post-images')
         .getPublicUrl(fileName)
 

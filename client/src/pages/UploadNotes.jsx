@@ -10,7 +10,10 @@ Without it you'd have no way of knowing who is logged in. */
 import { useNavigate } from 'react-router-dom'
 
 export default function Upload() {
-  const { user } = useAuth() /* Here is where you deconstruct the user objecct to get the user ID below. */
+  const { user } = useAuth() /* Here is where you deconstruct the user object to get the user ID below. But how would you know
+  what actually comes from this? You'd look at your AuthContext.jsx file. Whatever that context is providing is what you can 
+  destructure out of useAuth(). So you'd open that file and look for what it returns or provides — that's your source of truth 
+  for what's available.*/
   const navigate = useNavigate()
   const [image, setImage] = useState(null)
   const [caption, setCaption] = useState('')
@@ -44,29 +47,73 @@ export default function Upload() {
     try {
       // 1. Upload image to Supabase Storage
       const fileExt = image.name.split('.').pop()
-      /* image.name.split('.') splits the filename at every period. So my-painting.jpg becomes ['my-painting', 'jpg']. Then .pop() 
-      removes and returns the last item in that array — which is jpg. So fileExt ends up being just the file extension. The goal is 
-      to grab whatever extension the original file had so the uploaded file 
-      keeps the right format. */
+      /* image.name comes from the file the user selected in the file input — it's a property that every file object in JavaScript has 
+      built in. When the user picks a file from their device, the browser creates a file object with properties like name, size, and type 
+      automatically. That's where image.name comes from.image.name.split('.') splits the filename at every period. So my-painting.jpg becomes 
+      ['my-painting', 'jpg']. Then .pop() removes and returns the last item in that array — which is jpg. So fileExt ends up being just the 
+      file extension. The goal is to grab whatever extension the original file had so the uploaded file keeps the right format. */
 
       const fileName = `${user.id}-${Date.now()}.${fileExt}`
-      /* It comes from the user object you deconstructed from useAuth at the top. Supabase assigns every user a unique ID when they 
-      sign up, and that's what user.id is. */
+      /* user.id comes from the user object you deconstructed from useAuth at the top. Supabase assigns every user a unique ID when they 
+      sign up, and that's what user.id is. Example of an actual fileName: a3f8c2d1-7b4e-4f2a-9c1d-2e5f8a3b6c7d-1716300000000.jpg
+      The first part (a3f8c2d1-7b4e-4f2a-9c1d-2e5f8a3b6c7d) is the Supabase user ID, then a dash, then (1716300000000) is the timestamp 
+      from Date.now() in milliseconds, then .jpg is the file extension. This format guarantees every filename is unique — even if the same 
+      user uploads two images at the same time, the timestamp will be different.
+      */
 
       const { error: uploadError } = await supabase.storage /* This is destructuring with renaming. So { error: uploadError } means 
-      "pull out the property called error 
-      from this object, but call it uploadError in my code." You're deconstructing error out of the response Supabase returns, and 
-      renaming it uploadError so it doesn't 
-      conflict with other error variables later in the same function.  */
-        .from('post-images')
-        .upload(fileName, image)
+      "pull out the property called error from this object, but call it uploadError in my code." You're deconstructing error out of 
+      the response Supabase returns, and renaming it uploadError so it doesn't conflict with other error variables later in the same function. 
+      
+      supabase.storage is a built-in module that comes with the Supabase JavaScript client library. It gives you access to Supabase's file 
+      storage system — think of it like a cloud hard drive attached to your project where you store things like images, videos, and documents.
+      When you call supabase.storage you're not talking to your database — you're talking to a completely separate service that Supabase provides 
+      alongside the database. That's why you see it used differently than supabase.from('posts'), which talks to the database tables.
+      So in your app you're actually using two different Supabase services:
+
+      - supabase.storage — for storing the actual image files
+      - supabase.from() — for storing the post data (URL, caption, medium, etc.) in the database
+
+      They work together — storage holds the file, the database holds the information about the file including the URL that points to it.
+
+      Yes, anytime you're storing actual files — images, videos, PDFs, audio — supabase.storage is what handles that. The database alone can't 
+      store files, it can only store text and numbers. So the pattern you're using in Elevate is the standard pattern for any file upload in any app:
+
+      Upload the file to storage, get back a URL
+      Save that URL to the database alongside any other data
+
+      That pattern holds true beyond Supabase too. Other services like AWS S3, Cloudinary, and Firebase Storage all work the same way — storage 
+      for the file, database for the reference to it.
+      */
+        .from('post-images') /*telling Supabase which storage bucket to put the file into. A bucket is like a folder in your Supabase storage.
+        You named this one post-images when you set up your project. */
+        .upload(fileName, image) /*telling Supabase two things — what to name the file in storage (fileName), and what the actual file is 
+        (image, which is the file the user selected from their device). 
+        
+        So together they read as: "in the post-images bucket, upload this file and call it fileName." */
 
       if (uploadError) throw uploadError
+      /*here we're saying, if there is an error, throw it, so the code stops running immediately. And the reason stopping immediately matters 
+      is because the next two steps — getting the public URL and inserting into the database — depend on the upload succeeding. If the image 
+      didn't upload, there's no URL to get, and no point inserting a post with a broken or missing image link. So throwing the error skips 
+      everything else and jumps straight down to the catch block.  */
 
       // 2. Get the public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = supabase.storage /* publicUrl comes from Supabase. When you call getPublicUrl(fileName), 
+      Supabase constructs a URL that points to the file you just uploaded in storage. You created fileName above in this line of code:
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`
+      
+      It looks something like:
+      https://yourproject.supabase.co/storage/v1/object/public/post-images/userid-timestamp.jpg
+      That URL is what gets saved to the database as image_url. Also, this whole thing is one statement so it all excutes together:
+      supabase.storage.from('post-images').getPublicUrl(fileName) That runs completely, returns an object with data.publicUrl inside it, and 
+      then the left side destructures it into publicUrl. So by the time publicUrl exists, getPublicUrl(fileName) has already run and returned 
+      the URL.
+      
+      Then later when you want to display the image in the app, you just 
+      use that URL as the src of an <img> tag and the browser fetches it directly from Supabase storage. */
         .from('post-images')
-        .getPublicUrl(fileName)
+        .getPublicUrl(fileName) 
 
       // 3. Insert post into database
       const { error: insertError } = await supabase
@@ -78,7 +125,8 @@ export default function Upload() {
           medium,
           dimensions,
           for_sale: forSale,
-          price: forSale ? parseFloat(price) : null
+          price: forSale ? parseFloat(price) : null /*price state is a string because it comes from an input field. parseFloat converts it to a decimal 
+          number before storing it in the database. If the artwork isn't for sale, it stores null instead. */
         })
 
       if (insertError) throw insertError
@@ -98,7 +146,8 @@ export default function Upload() {
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => setImage(e.target.files[0])}
+          onChange={(e) => setImage(e.target.files[0])} /*file inputs return a list of files (even if only one is selected), so files[0] grabs the first 
+          one from that list. */
           required
         />
         <input
@@ -123,11 +172,13 @@ export default function Upload() {
           <input
             type="checkbox"
             checked={forSale}
-            onChange={(e) => setForSale(e.target.checked)}
+            onChange={(e) => setForSale(e.target.checked)} /*checkboxes don't have a value the way text inputs do. Instead they have checked which is 
+            true or false, which is why setForSale uses e.target.checked instead of e.target.value. */
           />
           Available for sale
         </label>
-        {forSale && (
+        {forSale && ( /* the price input only renders if forSale is true. This is conditional rendering using the && operator — if the left side is 
+        false, React skips the right side entirely. */
           <input
             type="number"
             placeholder="Price ($)"
