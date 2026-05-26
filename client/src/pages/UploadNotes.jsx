@@ -49,7 +49,7 @@ export default function Upload() {
       const fileExt = image.name.split('.').pop()
       /* image.name comes from the file the user selected in the file input — it's a property that every file object in JavaScript has 
       built in. When the user picks a file from their device, the browser creates a file object with properties like name, size, and type 
-      automatically. That's where image.name comes from.image.name.split('.') splits the filename at every period. So my-painting.jpg becomes 
+      automatically. That's where image.name comes from. image.name.split('.') splits the filename at every period. So my-painting.jpg becomes 
       ['my-painting', 'jpg']. Then .pop() removes and returns the last item in that array — which is jpg. So fileExt ends up being just the 
       file extension. The goal is to grab whatever extension the original file had so the uploaded file keeps the right format. */
 
@@ -61,7 +61,15 @@ export default function Upload() {
       user uploads two images at the same time, the timestamp will be different.
       */
 
-      const { error: uploadError } = await supabase.storage /* This is destructuring with renaming. So { error: uploadError } means 
+      const { error: uploadError } = await supabase.storage /* 
+      The error isn't describing what Supabase is doing — it's describing what Supabase returns. Every Supabase operation returns an object 
+      that always has two possible properties: data and error. One of them will have a value and the other will be null depending on whether 
+      the operation succeeded or failed. So when you write: const { error: uploadError } = await supabase.storage...
+      You're saying "run the upload, and when it comes back, pull out the error property from the response." You're not saying the upload 
+      itself is an error — you're just grabbing that slot from the response object in case something went wrong. Think of it like ordering food. 
+      The waiter always comes back with either your food (data) or an apology (error). You're just listening for the apology.
+      
+      This is destructuring with renaming. So { error: uploadError } means 
       "pull out the property called error from this object, but call it uploadError in my code." You're deconstructing error out of 
       the response Supabase returns, and renaming it uploadError so it doesn't conflict with other error variables later in the same function. 
       
@@ -86,7 +94,8 @@ export default function Upload() {
       for the file, database for the reference to it.
       */
         .from('post-images') /*telling Supabase which storage bucket to put the file into. A bucket is like a folder in your Supabase storage.
-        You named this one post-images when you set up your project. */
+        You named this post-images when you set up your Supabase storage bucket. It's not something Supabase decides — it's whatever name you 
+        gave the bucket when you created it in your Supabase dashboard. You can find it by going to your project in Supabase then Storage. */
         .upload(fileName, image) /*telling Supabase two things — what to name the file in storage (fileName), and what the actual file is 
         (image, which is the file the user selected from their device). 
         
@@ -103,7 +112,7 @@ export default function Upload() {
       Supabase constructs a URL that points to the file you just uploaded in storage. You created fileName above in this line of code:
       const fileName = `${user.id}-${Date.now()}.${fileExt}`
       
-      It looks something like:
+      The URL looks something like:
       https://yourproject.supabase.co/storage/v1/object/public/post-images/userid-timestamp.jpg
       That URL is what gets saved to the database as image_url. Also, this whole thing is one statement so it all excutes together:
       supabase.storage.from('post-images').getPublicUrl(fileName) That runs completely, returns an object with data.publicUrl inside it, and 

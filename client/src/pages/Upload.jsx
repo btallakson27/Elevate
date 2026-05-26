@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom'
 
 export default function Upload() {
   const { user } = useAuth()
-  console.log(user)
   const navigate = useNavigate()
   const [image, setImage] = useState(null)
   const [caption, setCaption] = useState('')

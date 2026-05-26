@@ -19,9 +19,8 @@ export const AuthProvider = ({ children }) => {
       2. Console.log it — in any component where you have access to user, just add console.log(user) temporarily and look at the output 
       in your browser dev tools. That shows you exactly what's there. To do this, temporarily add the code below after the 
       const { user } = useAuth() line in your Upload component: console.log(user) then cd client, npm install to install the dependencies
-      including Vite. Then run npm run dev. 
+      including Vite. Then run npm run dev. AFter that open devtools, make sure you're on the "Upload" page, console tab, click on something.
       
-
       The console.log approach is actually what most developers do in practice — it's faster than reading docs and shows you the real data 
       your app is working with.*/
       setLoading(false) 
