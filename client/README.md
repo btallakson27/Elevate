@@ -1,16 +1,55 @@
-# React + Vite
+# Elevate
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A social media platform built for fine artists to share their work, connect with other creatives, and sell their art.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Frontend:** React, Vite
+- **Backend:** Node.js, Express
+- **Database & Auth:** Supabase (PostgreSQL)
+- **Storage:** Supabase Storage
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- User authentication (signup, login, protected routing)
+- Image upload with artwork metadata (caption, medium, dimensions)
+- Mark artwork as available for sale with pricing
+- Artwork stored in Supabase Storage, metadata stored in database
+- Row Level Security (RLS) policies for data protection
 
-## Expanding the ESLint configuration
+## In Progress
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Artist feed
+- Likes
+- Follows
+- Artist profiles
+
+## Run Locally
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/btallakson27/Elevate
+cd Elevate
+```
+
+**2. Install dependencies**
+```bash
+cd client
+npm install
+```
+
+**3. Set up environment variables**
+
+Create a `.env` file inside the `client` folder:
+
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+**4. Start the development server**
+```bash
+npm run dev
+```
+
+## Author
+
+Ben Tallakson — [GitHub](https://github.com/btallakson27) | [Portfolio](https://codingwithben.netlify.app)
