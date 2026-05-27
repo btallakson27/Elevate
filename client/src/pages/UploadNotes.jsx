@@ -102,13 +102,45 @@ export default function Upload() {
         So together they read as: "in the post-images bucket, upload this file and call it fileName." */
 
       if (uploadError) throw uploadError
-      /*here we're saying, if there is an error, throw it, so the code stops running immediately. And the reason stopping immediately matters 
+      /* here we're saying, if there is an error, throw it, so the code stops running immediately. And the reason stopping immediately matters 
       is because the next two steps — getting the public URL and inserting into the database — depend on the upload succeeding. If the image 
       didn't upload, there's no URL to get, and no point inserting a post with a broken or missing image link. So throwing the error skips 
       everything else and jumps straight down to the catch block.  */
 
       // 2. Get the public URL
-      const { data: { publicUrl } } = supabase.storage /* publicUrl comes from Supabase. When you call getPublicUrl(fileName), 
+      const { data: { publicUrl } } = supabase.storage /* 
+       supabase.storage is a storage bucket in supabase where all uploaded images will be stored. within that, we have .from('post-images')
+      which is saying, "look in my 'post-images' bucket in supabase, which I named 'post-images'. this can be found in storage. then we do 
+      .getPublicUrl(filename) which is going to search for the specific file name of the image, which we established by making the "fileName" 
+      variable earlier. 
+
+      Every Supabase operation returns an object. getPublicUrl specifically returns this:
+
+            {
+        data: {
+          publicUrl: "https://yourproject.supabase.co/storage/v1/..."
+        }
+      }
+
+      That's just the shape Supabase decided their response object would have. data is the wrapper, and inside data is publicUrl which holds the actual URL string.
+      So when you write:
+        const { data: { publicUrl } } = supabase.storage...
+
+      You're saying "from the response, dig into data, then pull out publicUrl from inside it." It's nested destructuring — two levels deep in one line.
+You didn't create data or publicUrl — Supabase returns them automatically. You're just reaching into the response and grabbing what you need.
+
+      and if you actually want to view this,
+
+      temprarily replace the const { data: { publicUrl } } block of code with:
+              const response = supabase.storage
+          .from('post-images')
+          .getPublicUrl(fileName)
+
+        console.log(response)
+
+      Then check the console in your browser dev tools after uploading an image and you'll see the full response object with data and publicUrl inside it. After you're done looking, delete the console.log and put the code back to normal.
+
+      publicUrl comes from Supabase. When you call getPublicUrl(fileName), 
       Supabase constructs a URL that points to the file you just uploaded in storage. You created fileName above in this line of code:
       const fileName = `${user.id}-${Date.now()}.${fileExt}`
       
@@ -125,6 +157,17 @@ export default function Upload() {
         .getPublicUrl(fileName) 
 
       // 3. Insert post into database
+      // by inserting, you are creating a new row in your database that contains all the post information inlcuding the image_url which points to the 
+      // image in storage. The image and the database record are separate - the URL is whta connects them. first we are going to deconstruct/extract 
+      // the error (if there is one), but call it insertError so it doesn't get confused with other errors. now we need to await supabase, so wait on 
+      // supaabase to check it's 'posts' (found in "table editor")  and insert the user.id, image_url, etc. and parseFloat converts the price from a 
+      // string to a decimal and stores it in your Supabase database as such. Is this better? I'm a little confused on what the variable name is for 
+      // this section if there is no error. is there one? You're only destructuring error from the response because that's all you need to check. If 
+      // there's no error, the insert succeeded and the code just moves on to navigate('/'). You don't need the data from this operation because you 
+      // already have everything you need — publicUrl was grabbed in step 2.
+      /*And where are you attempting to insert? Inside the try block. That's the whole point of try/catch — you try to do something that might fail, 
+      and if it does, the catch block handles it. The insert is one of three things you're attempting in that try block, along with the upload and 
+      getting the public URL. */
       const { error: insertError } = await supabase
         .from('posts')
         .insert({
@@ -140,6 +183,11 @@ export default function Upload() {
 
       if (insertError) throw insertError
 
+      /*The code below. If everything worked and there are no errors, navigate the user to their homepage. but if there is an error, change the setState 
+      for setError to whatever the error message is. For finally— it doesn't only run when there's an error. `finally` runs always, regardless of whether 
+      the try succeeded or the catch caught an error. So `setLoading(false)` runs no matter what — whether the upload succeeded or failed. That's the whole 
+      point of `finally`. You want loading to stop either way so the button doesn't stay disabled and the user isn't stuck seeing "Uploading..." forever. */
+
       navigate('/')
     } catch (err) {
       setError(err.message)
@@ -148,6 +196,8 @@ export default function Upload() {
     }
   }
 
+  /* The return is where you define what actually shows up in the browser — the structure and content. CSS is what makes it look good. Think of the return 
+  as the blueprint and CSS as the interior design. */
   return (
     <div>
       <h1>Upload Your Work</h1>
