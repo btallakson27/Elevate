@@ -201,7 +201,11 @@ You didn't create data or publicUrl — Supabase returns them automatically. You
   return (
     <div>
       <h1>Upload Your Work</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}> {/*when the form is submitted, all of the above code will execute, attempting to upload artwork
+      to the app from the Upload page. type="file" opens a file picker. accept="image/*" filters to image files only. 
+      
+      The caption section is saying set the value to {caption} which is a blank string by default, then update the caption letter by 
+      letter immediately as the user types */}
         <input
           type="file"
           accept="image/*"
