@@ -64,7 +64,11 @@ export default function Upload() {
       if (uploadError) throw uploadError
 
       // 2. Get the public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = supabase.storage 
+      /* publicUrl comes from Supabase. When you call getPublicUrl(fileName), Supabase constructs a URL that points to the file you 
+      just uploaded in storage. It looks something like: https://yourproject.supabase.co/storage/v1/object/public/post-images/userid-timestamp.jpg
+      That URL is what gets saved to the database as image_url. Then later when you want to display the image in the app, you just 
+      use that URL as the src of an <img> tag and the browser fetches it directly from Supabase storage. */
         .from('post-images')
         .getPublicUrl(fileName)
 

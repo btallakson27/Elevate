@@ -3,6 +3,7 @@ import ProtectedRoute from './ProtectedRoute'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Upload from './pages/Upload'
+import Feed from './pages/Feed'
 
 function App() {
     return (
@@ -12,6 +13,7 @@ function App() {
                 <Route path="/signup" element={<Signup/>}/>
                 <Route path="/upload" element={<ProtectedRoute><Upload/></ProtectedRoute>}/>
                 <Route path="/" element={<ProtectedRoute><div>Welcome, {user.email}!</div></ProtectedRoute>}/>
+                <Route path="/feed" element={<Feed/>}/>
             </Routes>
         </BrowserRouter>
     )
