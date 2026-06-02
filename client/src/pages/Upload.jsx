@@ -32,7 +32,7 @@ export default function Upload() {
       if (uploadError) throw uploadError
 
       // 2. Get the public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = supabase.storage 
         .from('post-images')
         .getPublicUrl(fileName)
 
@@ -62,13 +62,14 @@ export default function Upload() {
   return (
     <div>
       <h1>Upload Your Work</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}> 
         <input
           type="file"
           accept="image/*"
           onChange={(e) => setImage(e.target.files[0])}
           required
         />
+  
         <input
           type="text"
           placeholder="Caption"
