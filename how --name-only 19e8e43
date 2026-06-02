@@ -1,0 +1,8 @@
+[33mcommit efe9fc79e7a04f72b203bee186bd3b17649d0eba[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mnotes[m[33m, [m[1;31morigin/notes[m[33m)[m
+Merge: 19e8e43 ab78a3b
+Author: Ben Tallakson <btallakson1@gmail.com>
+Date:   Mon Jun 1 18:15:43 2026 -0700
+
+    merged Mac and Windows changes
+
+client/src/App.jsx

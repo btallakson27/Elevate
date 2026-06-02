@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Upload from './pages/Upload'
+import Feed from './pages/Feed'
 
 function App() {
   const { user, loading } = useAuth()
@@ -16,6 +17,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/upload" element={user ? <Upload /> : <Navigate to="/login" />} />
         <Route path="/" element={user ? <div>Welcome, {user.email}!</div> : <Navigate to="/login" />} />
+        <Route path="/feed" element={<Feed />} />
       </Routes>
     </BrowserRouter>
   )
