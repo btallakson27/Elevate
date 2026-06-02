@@ -188,7 +188,9 @@ You didn't create data or publicUrl — Supabase returns them automatically. You
       the try succeeded or the catch caught an error. So `setLoading(false)` runs no matter what — whether the upload succeeded or failed. That's the whole 
       point of `finally`. You want loading to stop either way so the button doesn't stay disabled and the user isn't stuck seeing "Uploading..." forever. */
 
-      navigate('/')
+      navigate('/') /*IT ALL COMES DOWN TO THIS LINE. All three steps in the try block — upload the image, get the public URL, insert the post — have to succeed 
+      for the code to reach navigate('/'). If any one of them throws an error, the catch block takes over and the user never gets redirected. The navigate('/') 
+      is essentially the finish line. */
     } catch (err) {
       setError(err.message)
     } finally {
