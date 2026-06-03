@@ -45,8 +45,9 @@ function Feed(){
         async function fetchLikes(){
             try {
                 const {data, error} = await supabase.from('likes').select('*')
+                /* HERE is where all of the likes are fetched from Supabase. */
                 if (error) throw error
-                setLikes(data)
+                setLikes(data) /* fills the likes array with real data. */
             }catch(err){
                 console.error(err.message)
             }
@@ -58,7 +59,27 @@ function Feed(){
 
     async function handleLike(postId){
         const existingLike = likes.find(like => like.post_id === postId && like.user_id === user.id)
+        /*checks whether the current user has already liked a specific post. So when you click the like 
+        button on a post, likes.find() searches through the local likes array and asks "is there already 
+        a like in here where both the post_id matches this post AND the user_id matches the logged in user?"
+        If it finds one, existingLike holds that like object. If it doesn't find one, existingLike is undefined.
+        That result is what drives the toggle — found it means unlike, didn't find it means like. 
+        
+        This is the key thing to understand. likes starts as an empty array, but by the time a user clicks 
+        the like button, fetchLikes() has already run and filled it with data from Supabase.
+        Remember the order of events:
 
+        1. Component loads
+        2. useEffect runs fetchLikes() which fetches all likes from Supabase
+        3. setLikes(data) fills the likes array with real data
+        4. Then the user clicks a like button. This happens in your JSX at the bottom of Feed.jsx,
+            this line: <button onClick={() => handleLike(post.id)}> When the user clicks that button, it calls 
+            handleLike and passes in the post.id of whichever post they clicked. That's the moment existingLike 
+            gets looked up.
+        5. Now likes.find() has actual data to search through
+
+        So by step 4, likes is no longer empty — it's full of like objects from Supabase. 
+        */
         if(existingLike){
             const {error} = await supabase.from('likes').delete().eq('id', existingLike.id) 
             /* 
@@ -109,7 +130,9 @@ function Feed(){
                     <h3>{post.user_id}</h3>
                     <img src={post.image_url} alt={post.caption}></img>
                     <p>{post.caption}</p>
-                    <button onClick={() => handleLike(post.id)}>
+                    <button onClick={() => handleLike(post.id)}> {/* When the user clicks that button, it calls 
+            handleLike and passes in the post.id of whichever post they clicked. That's the moment existingLike 
+            gets looked up. */}
                         {likes.some(like => like.post_id === post.id && like.user_id === user?.id) ? '❤️' : '🤍'}
                     </button>
                     <p>{likes.filter(like => like.post_id === post.id).length} likes</p>
