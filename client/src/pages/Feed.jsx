@@ -56,7 +56,7 @@ function Feed(){
 
     async function handleLike(postId){
         const existingLike = likes.find(like => like.post_id === postId && like.user_id === user.id)
-
+        
         if(existingLike){
             const {error} = await supabase.from('likes').delete().eq('id', existingLike.id) 
             

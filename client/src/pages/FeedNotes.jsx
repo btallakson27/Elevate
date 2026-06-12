@@ -84,9 +84,23 @@ function Feed(){
     },[]) /* empty dependency array means useEffect runs once when the component first loads. This does not
     yet update in real time when someone uploads. */
 
-    async function handleLike(postId){
+    async function handleLike(postId){ /* Where did this come from? 
+        It's a parameter — which is just a special kind of variable. It's a placeholder name you define when you 
+        write the function, and it gets filled in with the actual value when the function is called.
+        You could have named it anything — handleLike(banana) would work the same way. But postId makes it clear 
+        what it represents. */
         const existingLike = likes.find(like => like.post_id === postId && like.user_id === user.id)
-        /*checks whether the current user has already liked a specific post. So when you click the like 
+        /* /* 
+            - likes.find: checks, what's the current like status?
+            - like: a variable your choosing to call whatever the current like is
+            - like.post_id: the current likes post_id from Supabase
+            - ===: checks for a completely true statement
+            - && : both conditions must be true — the post_id must match AND the user_id must match
+
+            So this line says: search through the likes array and return the entire like object where both the post_id 
+            matches the clicked post AND the user_id matches the logged in user.
+        
+        checks whether the current user has already liked a specific post. So when you click the like 
         button on a post, likes.find() searches through the local likes array and asks "is there already 
         a like in here where both the post_id matches this post AND the user_id matches the logged in user?"
         If it finds one, existingLike holds that like object. If it doesn't find one, existingLike is undefined.
