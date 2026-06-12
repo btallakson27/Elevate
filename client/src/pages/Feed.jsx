@@ -10,7 +10,7 @@ function Feed(){
     useEffect(()=>{ 
         async function updateFeed(){ 
             try {
-                const {data, error} = await supabase.from('posts').select('*') 
+                const {data, error} = await supabase.from('posts').select('*, profiles(username)') 
                 if (error) throw error
                 setPosts(data)
             }catch(err){
@@ -52,7 +52,7 @@ function Feed(){
             
             {posts.map((post)=>(
                 <div key={post.id}> 
-                    <h3>{post.user_id}</h3>
+                    <h3>{post.profiles.username}</h3>
                     <img src={post.image_url} alt={post.caption}></img>
                     <p>{post.caption}</p>
                     <button onClick={() => handleLike(post.id)}>

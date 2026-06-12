@@ -21,7 +21,7 @@ function Feed(){
             be async. */
             /* now it's time to actually try to update the feed */
             try {
-                const {data, error} = await supabase.from('posts').select('*') /* .from() specifically looks in 
+                const {data, error} = await supabase.from('posts').select('*, profiles(username)') /* .from() specifically looks in 
                 supabase data tables, and we indicate which table we want by saying 'posts'. 
                 .select() tells supabase what we want to select from the table, and '*' means everything.
                 data and error are both returned from the returned supabase object, but this differs from
@@ -32,7 +32,12 @@ function Feed(){
                 
                 But you need to do something with data — right now you fetch it but never store it anywhere. 
                 You need a state variable to hold the posts so you can display them. Add useState to your 
-                imports and create a state variable for the posts:*/
+                imports and create a state variable for the posts:
+                
+                this part, '*, profiles(username)', says: in supabase, give me all table data from the posts table,
+                as well as the username from the profiles table, using the relationship between user_id in posts 
+                and id in profiles..
+                */
                 if (error) throw error
                 setPosts(data)
             }catch(err){
@@ -127,7 +132,29 @@ function Feed(){
             through them. In React you use .map() for this. */}
             {posts.map((post)=>(
                 <div key={post.id}> {/* each image needs it's own unique key, which we set as the post.id */}
-                    <h3>{post.user_id}</h3>
+                    <h3>{post.profiles.username}</h3> {/* displays usernames above art images on feed page. 
+                    Even though posts and profiles are two separate tables in supabase, we must use post.profiles 
+                    to access the information inside of the profiles table. The reason for this boils down to the 
+                    relationship between the two tables Since user_id in posts matches id in profiles, Supabase 
+                    knows they're connected. When you ask for profiles(username) in your select query, Supabase 
+                    automatically does the join behind the scenes and nests the profiles data inside each post 
+                    object before sending it back to your frontend. So it's two separate tables in Supabase, but 
+                    by the time the data arrives in your React app it's one combined object. 
+
+                    And you might be thinking, "I get the logic but still don't know why the profiles table is nested 
+                    inside the post table. to me, they are the same level of heirarchy."
+
+                    That's a fair observation. They are equal in Supabase — neither table is "above" the other. The nesting 
+                    isn't about hierarchy, it's just how Supabase chooses to format the response when you join tables.
+                    
+                    Think of it this    way — your query started with posts, and you asked Supabase to "also bring along" 
+                    some profiles data. So Supabase puts posts as the base object and attaches the profiles data onto it as 
+                    a nested property. It could have been done the other way around if you had started your query from the 
+                    profiles table instead.
+                    
+                    So the nesting is just a result of which table you called .from() on — that table becomes the base, and 
+                    everything else gets nested inside it.
+                    */}
                     <img src={post.image_url} alt={post.caption}></img>
                     <p>{post.caption}</p>
                     <button onClick={() => handleLike(post.id)}> {/* When the user clicks that button, it calls 

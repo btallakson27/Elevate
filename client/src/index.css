@@ -109,3 +109,7 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+img { /* changes size of all art images */
+  max-width: 300px;
+}
