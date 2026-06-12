@@ -91,7 +91,11 @@ function Feed(){
         what it represents. */
         const existingLike = likes.find(like => like.post_id === postId && like.user_id === user.id)
         /* /* 
-            - likes.find: checks, what's the current like status?
+            - likes.find: The local likes array is created when the component first loads. Remember 
+            fetchLikes() inside useEffect runs automatically when the Feed component loads and fills the likes array 
+            with all likes from Supabase. Then likes.find searches through the local likes array and returns the first 
+            like object where both conditions are true. By the time the user clicks the like button, the array is already 
+            full of data. likes.find just searches through what's already there.
             - like: a variable your choosing to call whatever the current like is
             - like.post_id: the current likes post_id from Supabase
             - ===: checks for a completely true statement
