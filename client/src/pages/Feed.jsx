@@ -8,6 +8,27 @@ function Feed(){
     const { user } = useAuth() 
 
     useEffect(()=>{ 
+        /* the functions below must be inside useEffect because fetching data from an external source (Supabase) is considered a 
+        side effect in React. A side effect is anything that reaches outside of React itself — like an API call, a database fetch, 
+        or a timer.
+        
+        It's not specifically tied to a user uploading a post. It's just that "go fetch data from Supabase when this component loads" 
+        is a side effect by definition, and useEffect is where side effects live in React. 
+        
+        The overarching rule: 
+        You don't always need useEffect when you need to access anything on the backend like Supabase or an API call — it depends on 
+        when you need the data. The rule is:
+
+            - If you need to fetch data when a component loads, use useEffect
+            - If you need to fetch data in response to a user action (like clicking a button), you can just call an async function 
+            directly — no useEffect needed
+
+        Look at your own handleLike function — that fetches and updates Supabase data but it's NOT inside useEffect because it only 
+        runs when the user clicks the like button.
+        So useEffect is specifically for "do this automatically when the component loads or when something changes." User-triggered 
+        actions don't need it.
+        */
+
         async function updateFeed(){ 
             try {
                 const {data, error} = await supabase.from('posts').select('*, profiles(username)') 
@@ -30,7 +51,8 @@ function Feed(){
 
         updateFeed()
         fetchLikes()
-    },[])
+    },[]) /* empty dependency array means useEffect runs once when the component first loads. This does not
+    yet update in real time when someone uploads. */
 
     async function handleLike(postId){
         const existingLike = likes.find(like => like.post_id === postId && like.user_id === user.id)
