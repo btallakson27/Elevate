@@ -34,10 +34,31 @@ function Feed(){
         */
 
     useEffect(()=>{ /* need useEffect hook (a special React function), it runs once when the 
-        component first loads, not every time a new image is posted. To update in real time you'd need 
+        component first loads (when the user opens the page), not every time a new image is posted. To update in real time you'd need 
         something extra, but for now once on load is fine. When a user navigates to the feed page, React 
         loads the Feed component, and the useEffect runs automatically at that moment, fetching all the 
-        posts from Supabase.*/
+        posts from Supabase.
+        
+        the functions below must be inside useEffect because fetching data from an external source (Supabase) is considered a 
+        side effect in React. A side effect is anything that reaches outside of React itself — like an API call, a database fetch, 
+        or a timer.
+        
+        It's not specifically tied to a user uploading a post. It's just that "go fetch data from Supabase when this component loads" 
+        is a side effect by definition, and useEffect is where side effects live in React. 
+        
+        The overarching rule: 
+        You don't always need useEffect when you need to access anything on the backend like Supabase or an API call — it depends on 
+        when you need the data. The rule is:
+
+            - If you need to fetch data when a component loads, use useEffect
+            - If you need to fetch data in response to a user action (like clicking a button), you can just call an async function 
+            directly — no useEffect needed
+
+        Look at your own handleLike function — that fetches and updates Supabase data but it's NOT inside useEffect because it only 
+        runs when the user clicks the like button.
+        So useEffect is specifically for "do this automatically when the component loads or when something changes." User-triggered 
+        actions don't need it.
+        */
         async function updateFeed(){ /* need this function inside of useEffect since useEffect can't
             be async. */
             /* now it's time to actually try to update the feed */
@@ -88,46 +109,29 @@ function Feed(){
         identify a post by its post_id, we pass that in as the parameter and call it postId. We can call this parameter whatever we
         please. */
         const existingLike = likes.find(like => like.post_id === postId && like.user_id === user.id)
-        /* /* 
-            - likes.find: The local likes array is created when the component first loads. Remember 
-            fetchLikes() inside useEffect runs automatically when the Feed component loads and fills the likes array 
-            with all likes from Supabase. Then likes.find searches through the local likes array and returns the first 
-            like object where both conditions are true. By the time the user clicks the like button, the array is already 
-            full of data. likes.find just searches through what's already there. So likes.find isn't looking for the most 
-            recent like. It's looking for a like that matches both the specific post AND the 
-            specific user. so .find() is an array method that literally searches the array to find something specific.
-            It loops through every element in the array one by one and returns the first element where the condition is true. 
-            If nothing matches, it returns undefined. is an arrow function passed directly as an argument — it's short, anonymous, 
-            and used inline when you just need a quick one-liner
-            - like: it's a parameter of the arrow function inside .find(). Just like postId is a parameter of handleLike, 
-            like is a parameter that represents each element as .find() loops through the array.
-            - like.post_id: the current likes post_id from Supabase
-            - ===: checks for a completely true statement
-            - && : both conditions must be true — the post_id must match AND the user_id must match
+        /* existingLike is only used inside handleLike which runs when the button is clicked. It's not what controls the red heart 
+        display.
 
-            So this line says: search through the likes array and return the entire like object where both the post_id 
-            matches the clicked post AND the user_id matches the logged in user.
+        The entire purpose of this line of code is to get the id from the like object, because in the next line you need existingLike.id 
+        so you can tell Supabase exactly which row to delete if the post has already been liked. If it wasn't liked, it will return
+        undefined which is what we want because we don't need an id if we're not deleting the row. 
         
-        checks whether the current user has already liked a specific post. So when you click the like 
-        button on a post, likes.find() searches through the local likes array and asks "is there already 
-        a like in here where both the post_id matches this post AND the user_id matches the logged in user?"
-        If it finds one, existingLike holds that like object. If it doesn't find one, existingLike is undefined.
-        That result is what drives the toggle — found it means unlike, didn't find it means like. 
+        postId is the id of the post whose like button was clicked, passed in as an argument from the JSX. 
         
-        This is the key thing to understand. likes starts as an empty array, but by the time a user clicks 
-        the like button, fetchLikes() has already run and filled it with data from Supabase.
-        Remember the order of events:
+        likes.find loops through every like in the local likes array and returns the first like object where both conditions are true: 
+        the like's post_id matches the clicked post AND the like's user_id matches the logged in user. If found, the user already liked it. 
+        If undefined, they haven't. The arrow function here is short and anonymous — used inline since it's a one-liner. 
+        
+        Simply put, it returns the like object if the current user has already liked this post, or undefined if they haven't. 
 
-        1. Component loads
-        2. useEffect runs fetchLikes() which fetches all likes from Supabase
-        3. setLikes(data) fills the likes array with real data
-        4. Then the user clicks a like button. This happens in your JSX at the bottom of Feed.jsx,
-            this line: <button onClick={() => handleLike(post.id)}> When the user clicks that button, it calls 
-            handleLike and passes in the post.id of whichever post they clicked. That's the moment existingLike 
-            gets looked up.
-        5. Now likes.find() has actual data to search through
+        The like object would look something like this:
+        {
+          id: 'abc123',
+          post_id: '77214cae-ae30-4f31-ac1e-5cfed163525c',
+          user_id: 'xyz789',
+          created_at: '2026-06-11T00:00:00'
+        }
 
-        So by step 4, likes is no longer empty — it's full of like objects from Supabase. 
         */
         if(existingLike){
             const {error} = await supabase.from('likes').delete().eq('id', existingLike.id) 
