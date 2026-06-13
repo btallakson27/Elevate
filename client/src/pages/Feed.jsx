@@ -54,12 +54,36 @@ function Feed(){
     },[]) /* empty dependency array means useEffect runs once when the component first loads. This does not
     yet update in real time when someone uploads. */
 
-    async function handleLike(postId){
+    async function handleLike(postId){ /* the function must take a parameter so we know which specific post was clicked. Since we can 
+        identify a post by its post_id, we pass that in as the parameter and call it postId. */
         const existingLike = likes.find(like => like.post_id === postId && like.user_id === user.id)
-        
+        /* This line tells us whether the user already liked the post. If it finds a match, they liked it. If it returns undefined, they 
+        haven't. likes.find isn't looking for the most recent like. It's looking for a like that matches both the specific post AND the 
+        specific user. There's no time element involved. so .find() is an array method that literally searches the array to find 
+        something specific. It loops through every element in the array one by one and returns the first element where the condition 
+        is true. If nothing matches, it returns undefined. is an arrow function passed directly as an argument — it's short, anonymous, 
+        and used inline when you just need a quick one-liner*/
         if(existingLike){
             const {error} = await supabase.from('likes').delete().eq('id', existingLike.id) 
-            
+            /* 
+                By the time we reach this line we already know there's a row to delete because existingLike found one on the line above. 
+                So we're not checking if a row exists here. This line is just executing the delete and capturing whether the operation 
+                itself succeeded or failed. An error here would come from something like a network issue or a Supabase permissions problem — 
+                not from a missing row. The row existence check already happened with existingLike. This line just does the actual deleting.
+                .delete() tells Supabase to delete a row from the likes table. 
+                .eq('id', existingLike.id) — this is the filter that says which row to delete. eq stands for "equal", so it's saying: 
+                only delete the row where the id column equals existingLike.id. Without .eq() Supabase would delete everything in the 
+                likes table. The .eq() is what targets the specific row you want gone.
+
+                Think of it like two separate instructions chained together:
+                - delete() — what to do
+                - eq('id', existingLike.id) — which row to do it to
+
+            So the line itself just does the delete. Remember existingLike found a matching like in the array, which means this user 
+            has already liked this post. So clicking the button again means they want to unlike it — which means removing that row 
+            from the likes table. The error check happens on the next line.
+            */
+
             if(!error) setLikes(likes.filter(like => like.id !== existingLike.id))
             
 

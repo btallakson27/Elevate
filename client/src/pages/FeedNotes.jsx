@@ -84,19 +84,23 @@ function Feed(){
     },[]) /* empty dependency array means useEffect runs once when the component first loads. This does not
     yet update in real time when someone uploads. */
 
-    async function handleLike(postId){ /* Where did this come from? 
-        It's a parameter — which is just a special kind of variable. It's a placeholder name you define when you 
-        write the function, and it gets filled in with the actual value when the function is called.
-        You could have named it anything — handleLike(banana) would work the same way. But postId makes it clear 
-        what it represents. */
+    async function handleLike(postId){ /*  the function must take a parameter so we know which specific post was clicked. Since we can 
+        identify a post by its post_id, we pass that in as the parameter and call it postId. We can call this parameter whatever we
+        please. */
         const existingLike = likes.find(like => like.post_id === postId && like.user_id === user.id)
         /* /* 
             - likes.find: The local likes array is created when the component first loads. Remember 
             fetchLikes() inside useEffect runs automatically when the Feed component loads and fills the likes array 
             with all likes from Supabase. Then likes.find searches through the local likes array and returns the first 
             like object where both conditions are true. By the time the user clicks the like button, the array is already 
-            full of data. likes.find just searches through what's already there.
-            - like: a variable your choosing to call whatever the current like is
+            full of data. likes.find just searches through what's already there. So likes.find isn't looking for the most 
+            recent like. It's looking for a like that matches both the specific post AND the 
+            specific user. so .find() is an array method that literally searches the array to find something specific.
+            It loops through every element in the array one by one and returns the first element where the condition is true. 
+            If nothing matches, it returns undefined. is an arrow function passed directly as an argument — it's short, anonymous, 
+            and used inline when you just need a quick one-liner
+            - like: it's a parameter of the arrow function inside .find(). Just like postId is a parameter of handleLike, 
+            like is a parameter that represents each element as .find() loops through the array.
             - like.post_id: the current likes post_id from Supabase
             - ===: checks for a completely true statement
             - && : both conditions must be true — the post_id must match AND the user_id must match
@@ -127,17 +131,22 @@ function Feed(){
         */
         if(existingLike){
             const {error} = await supabase.from('likes').delete().eq('id', existingLike.id) 
-            /* 
-            supabase.from('likes') — target the likes table
-            .delete() — delete a row
-            .eq('id', existingLike.id) — but only the row where id matches existingLike.id
-            const {error} = — destructure the error from the result so we can check if something went wrong
+            /* .delete() tells Supabase to delete a row from the likes table. 
+                .eq('id', existingLike.id) — this is the filter that says which row to delete. eq stands for "equal", so it's saying: 
+                only delete the row where the id column equals existingLike.id. Without .eq() Supabase would delete everything in the 
+                likes table. The .eq() is what targets the specific row you want gone.
 
-            So the line itself just does the delete. The error check happens on the next line:
+                Think of it like two separate instructions chained together:
+                - delete() — what to do
+                - eq('id', existingLike.id) — which row to do it to
+
+            So the line itself just does the delete. Remember existingLike found a matching like in the array, which means this user 
+            has already liked this post. So clicking the button again means they want to unlike it — which means removing that row 
+            from the likes table. The error check happens on the next line.
             */
             if(!error) setLikes(likes.filter(like => like.id !== existingLike.id))
             /*
-            if(!error) — if the delete succeeded
+            if(!error) — if there was no error (the delete succeeded)
             setLikes() is going to change our local state to whatever happens inside the parenthesis
             likes here is the local state array, not something being returned from Supabase in that moment. We fetched it 
             from Supabase earlier and stored it in state, but right now we're just working with the local copy.
