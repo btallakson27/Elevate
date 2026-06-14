@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient.js'
 import { useAuth } from '../context/AuthContext' 
 
-function Feed(){
+function Feed(){ /* Thought process: I need a function to load and display posts (images, usernames, captions) and 
+    likes when the feed page is opened.  */
     const [posts, setPosts] = useState([]) 
     const [likes, setLikes] = useState([])
     const { user } = useAuth() 
 
-    useEffect(()=>{ 
-        async function updateFeed(){ 
+    useEffect(()=>{ /* Thought process: (after creating updateFeed and fetchLikes functions)  I want them both in useEffect because 
+        I want all of this to show right when the component is loaded, meaning the user opens the Feed page.  */
+        async function updateFeed(){ /* Thought process: I need a function to fetch posts and usernames from Supabase and display them*/
             try {
                 const {data, error} = await supabase.from('posts').select('*, profiles(username)') 
                 if (error) throw error
@@ -18,7 +20,8 @@ function Feed(){
             }
         }
 
-        async function fetchLikes(){
+        async function fetchLikes(){ /* Thought process: I need a function to fetch likes data from Supabase so the like counts and 
+            heart state can be displayed */
             try {
                 const {data, error} = await supabase.from('likes').select('*')
                 if (error) throw error
