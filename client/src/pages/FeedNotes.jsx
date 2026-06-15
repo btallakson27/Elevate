@@ -122,20 +122,30 @@ function Feed(){ /* Thought process: I need a function to load and display posts
     async function handleLike(postId){ /* Thought process: Now I need a function that handles liking and unliking a post when the 
         button is clicked. Takes postId as a parameter — the id of the post whose button was clicked, passed in from the JSX. */
         const existingLike = likes.find(like => like.post_id === postId && like.user_id === user.id)
-        /* existingLike is only used inside handleLike which runs when the button is clicked. It's not what controls the red heart 
-        display.
-
-        The entire purpose of this line of code is to get the id from the like object, because in the next line you need existingLike.id 
+        /* Now I need to get the id from the like object, because in the next line you need existingLike.id 
         so you can tell Supabase exactly which row to delete if the post has already been liked. If it wasn't liked, it will return
         undefined which is what we want because we don't need an id if we're not deleting the row. 
         
-        postId is the id of the post whose like button was clicked, passed in as an argument from the JSX. 
+        existingLike is only used inside handleLike which runs when the button is clicked. It's not what controls the red heart display.
         
-        likes.find loops through every like in the local likes array and returns the first like object where both conditions are true: 
-        the like's post_id matches the clicked post AND the like's user_id matches the logged in user. If found, the user already liked it. 
-        If undefined, they haven't. The arrow function here is short and anonymous — used inline since it's a one-liner. 
+        like => is saying "for each element in the array, temporarily call it like, and check if this condition is true." It's not 
+        returning everything after the => — it's returning the result of the condition, which is either true or false. 
+            - like is the current element in the likes array — it's a full like object with id, post_id, user_id, and created_at
+            - postId is the id of the post that was clicked, passed in as a parameter from the JSX.
+            but how does the function know postId is the id of the post that was clicked? 
+            Because of this line in the JSX: <button onClick={() => handleLike(post.id)}>
+
+        So like.post_id is asking "what post does this like belong to?" and postId is asking "what post did the user just click?" 
+        The === is comparing the two to see if they match.
+        It's checking if both conditions are true:
+
+          - like.post_id === postId — does this like belong to the clicked post?
+          - like.user_id === user.id — does this like belong to the logged in user?
         
-        Simply put, it returns the like object if the current user has already liked this post, or undefined if they haven't. 
+        Both must be true for .find() to return that like object.
+
+        .find() then uses those true/false results to decide which element to return. The first element that returns true is what gets 
+        stored in existingLike. 
 
         The like object would look something like this:
         {
@@ -146,9 +156,30 @@ function Feed(){ /* Thought process: I need a function to load and display posts
         }
 
         */
-        if(existingLike){
+        if(existingLike){ /* a matching like was found, meaning the post was already liked */
             const {error} = await supabase.from('likes').delete().eq('id', existingLike.id) 
-            /* .delete() tells Supabase to delete a row from the likes table. 
+            /* so we delete that row from Supabase (unlike it) 
+            The error in const {error} is an actual error message that will show if and only if this part of the code, 
+            await supabase.from('likes').delete().eq('id', existingLike.id), didn't work. 
+            
+            Sso this one line does two things:
+
+                1. Executes the delete operation on Supabase
+                2. Destructures the error from the response so you can check if it worked
+
+            The const {error} = part isn't setting error to anything manually — it's just extracting the error property from whatever 
+            Supabase sends back after the delete runs.
+
+                By the time we reach this line we already know there's a row to delete because existingLike found one on the line above. 
+                
+                Executes the delete on the likes table. Two chained instructions:
+                - .delete() — what to do
+                - .eq('id', existingLike.id) — which row to delete (where id matches existingLike.id)
+                Without .eq(), Supabase would delete everything in the likes table.
+                error captures whether the operation succeeded or failed (network issues, permissions, etc.)
+                The actual error check happens on the next line.
+            
+                .delete() tells Supabase to delete a row from the likes table. 
                 .eq('id', existingLike.id) — this is the filter that says which row to delete. eq stands for "equal", so it's saying: 
                 only delete the row where the id column equals existingLike.id. Without .eq() Supabase would delete everything in the 
                 likes table. The .eq() is what targets the specific row you want gone.
@@ -177,9 +208,15 @@ function Feed(){ /* Thought process: I need a function to load and display posts
             The key concept is that we already deleted it from Supabase on the line above. This line just keeps our local
              state in sync so the UI updates instantly without needing to re-fetch everything from Supabase.
             */
-        } else {
+        } else { /* This addresses what to do if existingLike is not true, meaning the post has not been liked. 
+            In this case we want to insert the user_id, and post_id in order to add all data to the row in supabase likes table. 
+            If there is an error, we have console.error to log the error message to the developer console. But if there is not, we 
+            fill the local likes array with every like and data[0], which is the entire like object that Supabase returns after the 
+            insert — all four columns: id, post_id, user_id, and created_at. So [...likes, data[0]] means spread all the existing likes 
+            into a new array and add the newly inserted like object at the end. That's what keeps local state in sync after the insert.*/
             const {data, error} = await supabase.from('likes').insert({user_id: user.id, post_id: postId}).select()
             if(!error) setLikes([...likes, data[0]])
+            else console.error(error.message)
         }
     }
     {/* the component needs to return some JSX to display the posts. Without it the page will be blank.
@@ -189,7 +226,7 @@ function Feed(){ /* Thought process: I need a function to load and display posts
         created_at, and id. 
         
         And I want every post to be in it's own div and contain the user_id at top, then the image, and the 
-        caption below the image. but the image isn't here. It's in the strage bucket 'post-images'.
+        caption below the image. but the image isn't here. It's in the storage bucket 'post-images'.
         return notes above */}
     return(
         <div>
