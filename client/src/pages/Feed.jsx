@@ -24,19 +24,22 @@ function Feed(){ /* Thought process: I need a function to load and display posts
             heart state can be displayed */
             try {
                 const {data, error} = await supabase.from('likes').select('*')
+                /* If you forget what the Supabase object returns and that its called data and error, change the code above
+                to replace {data, error} with 'response', then console.log(response) immediately after. Then you must make sure 
+                your app is running, by going to http://localhost:5173/feed, then open Chrome dev tools with F12, click the Console 
+                tab, and you'll see the logged response there. */
                 if (error) throw error
-                setLikes(data)
+                setLikes(data) /* fills likes array with reak data */
             }catch(err){
                 console.error(err.message)
             }
         }
-
         updateFeed()
         fetchLikes()
     },[]) 
 
-    async function handleLike(postId){ /* the function must take a parameter so we know which specific post was clicked. Since we can 
-        identify a post by its post_id, we pass that in as the parameter and call it postId. */
+    async function handleLike(postId){ /* Thought process: Now I need a function that handles liking and unliking a post when the 
+        button is clicked. Takes postId as a parameter — the id of the post whose button was clicked, passed in from the JSX. */
         const existingLike = likes.find(like => like.post_id === postId && like.user_id === user.id)
         /* existingLike is only used inside handleLike which runs when the button is clicked. It's not what controls the red heart display.
 

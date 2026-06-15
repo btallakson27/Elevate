@@ -3,7 +3,8 @@ import { supabase } from '../supabaseClient.js'
 import { useAuth } from '../context/AuthContext' /* part of setting up the likes button. 
 need to get the logged in user so we know their user_id */
 
-function Feed(){
+function Feed(){ /* Thought process: I need a function to load and display posts (images, usernames, captions) and 
+    likes when the feed page is opened.  */
     const [posts, setPosts] = useState([]) /*State variables must be declared at the top of the component, 
     not inside useEffect or try.  */
     const [likes, setLikes] = useState([])
@@ -33,7 +34,10 @@ function Feed(){
         actions don't need it.
         */
 
-    useEffect(()=>{ /* need useEffect hook (a special React function), it runs once when the 
+    useEffect(()=>{ /* Thought process: (after creating updateFeed and fetchLikes functions)  I want them both in useEffect because 
+        I want all of this to show right when the component is loaded, meaning the user opens the Feed page.
+        
+        need useEffect hook (a special React function), it runs once when the 
         component first loads (when the user opens the page), not every time a new image is posted. To update in real time you'd need 
         something extra, but for now once on load is fine. When a user navigates to the feed page, React 
         loads the Feed component, and the useEffect runs automatically at that moment, fetching all the 
@@ -59,9 +63,10 @@ function Feed(){
         So useEffect is specifically for "do this automatically when the component loads or when something changes." User-triggered 
         actions don't need it.
         */
-        async function updateFeed(){ /* need this function inside of useEffect since useEffect can't
-            be async. */
-            /* now it's time to actually try to update the feed */
+        async function updateFeed(){ /* Thought process: I need a function to fetch posts and usernames from Supabase and display them
+            
+            need this function inside of useEffect since useEffect can'tbe async. 
+            now it's time to actually try to update the feed */
             try {
                 const {data, error} = await supabase.from('posts').select('*, profiles(username)') /* .from() specifically looks in 
                 supabase data tables, and we indicate which table we want by saying 'posts'. 
@@ -89,10 +94,19 @@ function Feed(){
             }
         }
 
-        async function fetchLikes(){
+        async function fetchLikes(){ /* Thought process: I need a function to fetch likes data from Supabase so the like counts and 
+            heart state can be displayed */
             try {
                 const {data, error} = await supabase.from('likes').select('*')
-                /* HERE is where all of the likes are fetched from Supabase. */
+                /* destructuring — extracting both data and error from the object that Supabase returns. You need data to fill the 
+                likes array and error to check if something went wrong. 
+                
+                If you forget what the Supabase object returns and that its called data and error, change the code above
+                to replace {data, error} with 'response', then console.log(response) immediately after. Then you must make sure 
+                your app is running, by going to http://localhost:5173/feed, then open Chrome dev tools with F12, click the Console 
+                tab, and you'll see the logged response there.
+                */
+                console.log(data)
                 if (error) throw error
                 setLikes(data) /* fills the likes array with real data. */
             }catch(err){
@@ -105,9 +119,8 @@ function Feed(){
     },[]) /* empty dependency array means useEffect runs once when the component first loads. This does not
     yet update in real time when someone uploads. */
 
-    async function handleLike(postId){ /*  the function must take a parameter so we know which specific post was clicked. Since we can 
-        identify a post by its post_id, we pass that in as the parameter and call it postId. We can call this parameter whatever we
-        please. */
+    async function handleLike(postId){ /* Thought process: Now I need a function that handles liking and unliking a post when the 
+        button is clicked. Takes postId as a parameter — the id of the post whose button was clicked, passed in from the JSX. */
         const existingLike = likes.find(like => like.post_id === postId && like.user_id === user.id)
         /* existingLike is only used inside handleLike which runs when the button is clicked. It's not what controls the red heart 
         display.
