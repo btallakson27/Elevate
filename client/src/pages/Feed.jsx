@@ -53,12 +53,12 @@ function Feed(){ /* Thought process: I need a function to load and display posts
     }
     
     return(
+
         <div>
-            
             {posts.map((post)=>(
                 <div key={post.id}> 
                     <h3>{post.profiles.username}</h3>
-                    <img src={post.image_url} alt={post.caption}></img>
+                    <img src={post.image_url} alt={post.caption}></img> 
                     <p>{post.caption}</p>
                     <button onClick={() => handleLike(post.id)}>
                         {likes.some(like => like.post_id === post.id && like.user_id === user?.id) ? '❤️' : '🤍'}

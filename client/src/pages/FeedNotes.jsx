@@ -229,8 +229,15 @@ function Feed(){ /* Thought process: I need a function to load and display posts
         caption below the image. but the image isn't here. It's in the storage bucket 'post-images'.
         return notes above */}
     return(
-        <div>
-            {/* Where does the post data live? in the state variable 'posts' above.
+        <div> 
+            {/* Why div? 
+            No specific reason — div is just the default go-to container in React. It has no semantic meaning, it just wraps things. 
+            You could use section, main, or article and it would work the same way functionally.
+            The difference is semantic HTML — using section or main gives the browser and screen readers more context about what the 
+            content is. For example main signals "this is the main content of the page" and section signals "this is a distinct section."
+            For now div is fine, but as Elevate grows you might want to swap it for more meaningful tags for accessibility and SEO purposes.
+            
+            Where does the post data live? in the state variable 'posts' above.
             Iterating over posts — you have an array of posts, so you need to loop 
             through them. In React you use .map() for this. */}
             {posts.map((post)=>(
@@ -258,14 +265,33 @@ function Feed(){ /* Thought process: I need a function to load and display posts
                     So the nesting is just a result of which table you called .from() on — that table becomes the base, and 
                     everything else gets nested inside it.
                     */}
-                    <img src={post.image_url} alt={post.caption}></img>
+                    <img src={post.image_url} alt={post.caption}></img> {/* user CAN see alt text in some situations.
+                    
+                    */}
                     <p>{post.caption}</p>
-                    <button onClick={() => handleLike(post.id)}> {/* When the user clicks that button, it calls 
-            handleLike and passes in the post.id of whichever post they clicked. That's the moment existingLike 
-            gets looked up. */}
+                    <button onClick={() => handleLike(post.id)}> {/* users CAN see the alt text in some situations, like when 
+                    the image fails to load. It also helps screen readers describe the image to visually impaired users. 
+                    So it's not invisible — it's a fallback and accessibility tool. */}
                         {likes.some(like => like.post_id === post.id && like.user_id === user?.id) ? '❤️' : '🤍'}
+                        {/* Why a ? after user? That's the optional chaining operator. It means "only try to access .id if user 
+                        exists — if user is null or undefined, don't crash, just return undefined."
+                        It's there because when the Feed component first loads, there's a brief moment where user might still be 
+                        null before AuthContext finishes loading. Without the ?, trying to access user.id when user is null would 
+                        throw an error and crash the app.    
+
+                        .some() loops through the likes array and checks if at least one like matches both conditions: the post_id 
+                        matches the current post AND the user_id matches the logged in user. If true it shows ❤️, if false it shows 🤍.
+                        Either the user has liked the post (1 matching like) or they haven't (0 matching likes). A user can only like a 
+                        post once, so it will always be 0 or 1. .some() just returns true if it finds even one match, which is all you need here.
+
+                        */}
                     </button>
-                    <p>{likes.filter(like => like.post_id === post.id).length} likes</p>
+                    <p>{likes.filter(like => like.post_id === post.id).length} likes</p> 
+                    {/* filter through the local likes array, keep only the likes where post_id matches this post (the current post being
+                    mapped over), then count how many were kept with .length. That number is the like count displayed to the user. 
+                    For every post in the feed, it filters the likes array to find all likes for that specific post and displays the count. 
+                    It runs for every post automatically as the feed renders.
+                    */}
                 </div>
             ))}
         </div>
