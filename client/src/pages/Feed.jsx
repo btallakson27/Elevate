@@ -8,9 +8,9 @@ function Feed(){ /* Thought process: I need a function to load and display posts
     const [likes, setLikes] = useState([])
     const { user } = useAuth() 
 
-    useEffect(()=>{ /* Thought process: (after creating updateFeed and fetchLikes functions)  I want them both in useEffect because 
+    useEffect(()=>{ /* Thought process: (after creating fetchPosts and fetchLikes functions)  I want them both in useEffect because 
         I want all of this to show right when the component is loaded, meaning the user opens the Feed page.  */
-        async function updateFeed(){ /* Thought process: I need a function to fetch posts and usernames from Supabase and display them*/
+        async function fetchPosts(){ /* Thought process: I need a function to fetch posts and usernames from Supabase and display them*/
             try {
                 const {data, error} = await supabase.from('posts').select('*, profiles(username)') 
                 if (error) throw error
@@ -30,7 +30,7 @@ function Feed(){ /* Thought process: I need a function to load and display posts
                 console.error(err.message)
             }
         }
-        updateFeed()
+        fetchPosts()
         fetchLikes()
     },[]) 
 
